@@ -1,9 +1,9 @@
 import argparse
 
-from game import *
-from table import play, PlayerProcess, start_player
-from semi_random_player import *
-from human_player import *
+from game.game import *
+from game.table import play, PlayerProcess, start_player
+from players.semi_random_player import *
+from players.human_player import *
 # from wonders import WONDERS
 
 player_types = [

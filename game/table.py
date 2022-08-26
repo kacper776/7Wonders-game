@@ -2,10 +2,10 @@ from copy import deepcopy, copy
 from multiprocessing import Process, Pipe
 from multiprocessing.connection import Connection
 
-from game import *
-from wonders import WONDERS
-from base_player import AbstractPlayer
-from human_player import HumanPlayer
+from game.game import *
+from game.wonders import WONDERS
+from players.base_player import AbstractPlayer
+from players.human_player import HumanPlayer
 
 
 class DeadPlayer(Exception):

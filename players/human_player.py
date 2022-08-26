@@ -1,5 +1,5 @@
-from base import INPUT
-from base_player import AbstractPlayer
+from game.base import INPUT
+from players.base_player import AbstractPlayer
 
 
 class HumanPlayer(AbstractPlayer):

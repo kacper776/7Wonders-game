@@ -2,7 +2,7 @@ from multiprocessing.connection import Connection
 from abc import ABC, abstractmethod
 from resource import getrusage, RUSAGE_SELF
 
-from game import *
+from game.game import *
 
 
 class AbstractPlayer(ABC):
