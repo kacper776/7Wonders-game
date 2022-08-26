@@ -117,17 +117,17 @@ class SevenWonders(object):
 
                         max_raw_right = sum([min(to_buy, right_has)
                                             for to_buy, right_has in zip(need_to_buy.raw(),
-                                                                        resources_r.raw())])
+                                                                         resources_r.raw())])
                         max_refined_right = sum([min(to_buy, right_has)
                                                 for to_buy, right_has in zip(need_to_buy.refined(),
-                                                                            resources_r.refined())])
+                                                                             resources_r.refined())])
 
-                        result.update({(raw_l * self.raw_costs[player][0]\
+                        result.update([(raw_l * self.raw_costs[player][0]\
                                         + ref_l * self.refined_costs[player][0],
                                         (need_to_buy.raw_cnt() - raw_l) * self.raw_costs[player][1]\
                                         + (need_to_buy.refined_cnt() - ref_l) * self.refined_costs[player][1])
                                        for raw_l in range(need_to_buy.raw_cnt() - max_raw_right, max_raw_left)
-                                       for ref_l in range(need_to_buy.refined_cnt() - max_refined_right, max_refined_left)})
+                                       for ref_l in range(need_to_buy.refined_cnt() - max_refined_right, max_refined_left)])
         coins_to_trade = self.coins[player] - cost.coins
         return set(filter(lambda payments: sum(payments) <= coins_to_trade, result))
 
@@ -229,6 +229,11 @@ class SevenWonders(object):
         for action, player in self.actions_queue:
             action(self, player)
         self.actions_queue = []
+        if self.verbose:
+            print('Board:')
+            for player in range(self.n_players):
+                print(f'{player}: {self.board[player]}')
+                print(self.resources[player])
 
 
     

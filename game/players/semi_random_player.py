@@ -8,7 +8,6 @@ class SemiRandomPlayer(AbstractPlayer):
         pass
     
     def choose_move(self, moves: "tuple[tuple]") -> tuple:
-        assert(moves)
         non_sell_moves = [move for move in moves if move[0] != 'sell']
         if non_sell_moves:
             return choice(non_sell_moves)
