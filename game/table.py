@@ -1,4 +1,5 @@
 from copy import copy
+from random import sample
 from multiprocessing import Process, Pipe
 from multiprocessing.connection import Connection
 
