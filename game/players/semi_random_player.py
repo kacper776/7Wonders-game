@@ -1,6 +1,6 @@
 from random import choice
 
-from base_player import AbstractPlayer
+from players.base_player import AbstractPlayer
 
 
 class SemiRandomPlayer(AbstractPlayer):

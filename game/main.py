@@ -1,7 +1,7 @@
 import argparse
 
-from game.game import *
-from game.table import play, PlayerProcess, start_player
+from game import *
+from table import play, PlayerProcess, start_player
 from players.semi_random_player import *
 from players.human_player import *
 # from wonders import WONDERS

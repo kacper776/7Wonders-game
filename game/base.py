@@ -1,9 +1,6 @@
 from dataclasses import dataclass
 from typing import Callable
 
-from sqlalchemy import false
-
-
 MAX_HAND = 7
 START_COINS = 3
 

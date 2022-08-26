@@ -1,4 +1,4 @@
-from game.base import INPUT
+from base import INPUT
 from players.base_player import AbstractPlayer
 
 
