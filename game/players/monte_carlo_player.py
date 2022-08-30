@@ -9,12 +9,14 @@ INF = 1000000000.0
 
 
 class MonteCarloPlayer(AbstractPlayer):
-    def random_game(self, first_move: tuple) -> bool:
+    def random_game(self, first_move: Move) -> bool:
         def rotate_hands(game: SevenWonders, age: int) -> None:
             dir = [1, -1, 1][age - 1]
-            saved_hand = [copy(game.hand[player]) for player in range(self.n_players)]
+            saved_hand = [copy(game.hand[player])
+                          for player in range(self.n_players)]
             for player in range(self.n_players):
-                game.hand[player] = saved_hand[(player - dir + self.n_players) % self.n_players]
+                game.hand[player] = saved_hand[(player - dir + self.n_players)\
+                                                % self.n_players]
 
         def fill_other_players_hands(game: SevenWonders, age: int) -> None:
             curr_hand_size = len(game.hand[self.nr])
@@ -35,12 +37,11 @@ class MonteCarloPlayer(AbstractPlayer):
                 for card in game.hand[player]:
                     age_cards.remove(card)
         
-        def semi_random_move(moves: "tuple[tuple]") -> tuple:
-            non_sell_moves = [move for move in moves if move[0] != 'sell']
+        def semi_random_move(moves: "list[Move]") -> tuple:
+            non_sell_moves = [move for move in moves if move.type != 'sell']
             if non_sell_moves:
                 return choice(non_sell_moves)
-            move = choice(moves)
-            return move
+            return choice(moves)
 
         game = deepcopy(self.game)
         game.verbose = False
@@ -82,9 +83,8 @@ class MonteCarloPlayer(AbstractPlayer):
 
         return self.nr in game.end_game()
 
-    def move_score(self, move: tuple, age: int) -> float:
-        type, (card, option) = move
-        type_card = (type, card)
+    def move_score(self, move: Move, age: int) -> float:
+        type_card = (move.type, move.card)
         if self.simulations[type_card] == 0:
             return INF
         exploration_bonus = sqrt(2.0) * sqrt(log(float(self.all_simulations[age])))\
@@ -94,13 +94,12 @@ class MonteCarloPlayer(AbstractPlayer):
         return self.wins[type_card] / self.simulations[type_card] + exploration_bonus
                
 
-    def do_simulation(self, moves: "tuple[tuple]") -> None:
+    def do_simulation(self, moves: "list[Move]") -> None:
         age = self.game.age
         first_move = max(moves, key=lambda move: self.move_score(move, age))
-        type, (card, option) = first_move
         self.all_simulations[age] += 1
-        self.simulations[(type, card)] += 1
-        self.wins[(type, card)] += self.random_game(first_move)
+        self.simulations[(first_move.type, first_move.card)] += 1
+        self.wins[(first_move.type, first_move.card)] += self.random_game(first_move)
 
     def prepare(self) -> None:
         self.n_simulations = 200
@@ -112,12 +111,13 @@ class MonteCarloPlayer(AbstractPlayer):
                      for type in ('play', 'sell', 'build_wonder')
                      for card in CARDS}
 
-    def choose_move(self, moves: "tuple[tuple]") -> tuple:
+    def choose_move(self, moves: "list[Move]") -> Move:
         for _ in range(self.n_simulations):
             self.do_simulation(moves)
         best_type_and_card = max(moves, key=lambda move:
-                                            self.simulations[(move[0], move[1][0])])
-        best_moves = [(type, (card, option))
-                      for type, (card, option) in moves
-                      if (type, card) == (best_type_and_card[0], best_type_and_card[1][0])]
-        return min(best_moves, key=lambda move: sum(move[1][1]))
+                                    self.simulations[(move.type, move.card)])
+        best_moves = [move
+                      for move in moves
+                      if (move.type, move.card) == (best_type_and_card.type,
+                                                    best_type_and_card.card)]
+        return min(best_moves, key=lambda move: sum(move.pay_option))

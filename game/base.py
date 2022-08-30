@@ -133,3 +133,10 @@ class ScientificSymbols(object):
     def points(self) -> int:
         return self.slate**2 + self.cog**2 + self.compass**2\
                + 7 * min(self.slate, self.cog, self.compass)
+
+
+@dataclass(frozen=True)
+class Move(object):
+    type: str
+    card: Card
+    pay_option: "tuple[int][int]"

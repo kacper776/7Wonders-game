@@ -44,7 +44,7 @@ class AbstractPlayer(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def choose_move(self, moves: "tuple[tuple]") -> tuple:
+    def choose_move(self, moves: "list[Move]") -> Move:
         raise NotImplementedError
 
     def play(self) -> None:

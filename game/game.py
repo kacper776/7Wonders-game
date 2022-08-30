@@ -12,7 +12,8 @@ class SevenWonders(object):
     SPECIAL_DISCARD = -2
     FREE_OPTION = (0, 0)
 
-    def __init__(self, n_players: int, wonders: "tuple[Wonder]", verbose: bool=False):
+    def __init__(self, n_players: int, wonders: "tuple[Wonder]",
+                 verbose: bool=False) -> None:
         # general
         self.verbose = verbose
         self.n_players = n_players
@@ -94,6 +95,7 @@ class SevenWonders(object):
                 self.wonders[player].stages[stage].end_game_effect(self, player)
             self.points[player] += self.scientific_symbols[player].points()
             self.points[player] += floor(self.coins[player] / 3)
+            self.points[player] += sum(self.tokens[player])
         winner_score = max([(self.points[player], self.coins[player])
                             for player in range(self.n_players)])
         if self.verbose:
@@ -102,7 +104,7 @@ class SevenWonders(object):
         return [player for player in range(self.n_players)
                 if (self.points[player], self.coins[player]) == winner_score]
 
-    def pay_options(self, player: int, cost: Resources) -> "set[tuple[int]]":
+    def pay_options(self, player: int, cost: Resources) -> "set[tuple[int][int]]":
         result = set()
         if self.coins[player] < cost.coins:
             return result
@@ -139,37 +141,42 @@ class SevenWonders(object):
                                        for ref_l in range(need_to_buy.refined_cnt() - max_refined_right,
                                                           max_refined_left + 1)])
         coins_to_trade = self.coins[player] - cost.coins
-        return set(filter(lambda payments: sum(payments) <= coins_to_trade, result))
+        minimal_cost = sum(min(result, key=lambda payments: sum(payments),
+                               default=self.FREE_OPTION))
+        if minimal_cost > coins_to_trade:
+            return set()
+        return set(filter(lambda payments: sum(payments) == minimal_cost, result))
 
     def chains(self, player: int) -> list:
         return [chain for card in self.board[player] for chain in card.chains]
 
-    def moves(self, player: int) -> "tuple[tuple]":
+    def moves(self, player: int) -> "list[Move]":
         if player == self.free_card_choice:
-            return tuple([('play', (d_card, (self.SPECIAL_DISCARD, self.SPECIAL_DISCARD))) 
-                          for d_card in self.discard_pile])
+            return [Move('play', d_card, (self.SPECIAL_DISCARD, self.SPECIAL_DISCARD)) 
+                    for d_card in self.discard_pile if d_card not in self.board[player]]
         result = []
         player_chains = self.chains(player)
         for card in self.hand[player]:
             if card.name in player_chains:
-                result.append(('play', (card, self.FREE_OPTION)))
+                result.append(Move('play', card, self.FREE_OPTION))
             else:
                 pay_options = self.pay_options(player, card.cost)
                 for option in pay_options:
-                    result.append(('play', (card, option)))
+                    result.append(Move('play', card, option))
+            
             for power, ready in self.special_powers[player]:
                 if power == 'free_card_per_age' and ready:
-                    result.append(('play', (card, (self.SPECIAL_OLYPMIA, self.SPECIAL_OLYPMIA))))
-            result.append(('sell', (card, self.FREE_OPTION)))
+                    result.append(Move('play', card, (self.SPECIAL_OLYPMIA, self.SPECIAL_OLYPMIA)))
+            result.append(Move('sell', card, self.FREE_OPTION))
         stages_built = self.wonder_stages[player]
         if stages_built < self.wonders[player].n_stages:
             pay_options = self.pay_options(player, self.wonders[player].stages[stages_built].cost)
             for option in pay_options:
                 for card in self.hand[player]:
-                    result.append(('build_wonder', (card, option)))
-        return tuple(filter(lambda move: move[0] != 'play'\
-                            or move[1][0].name not in\
-                            [card.name for card in self.board[player]],
+                    result.append(Move('build_wonder', card, option))
+        return tuple(filter(lambda move: move.type != 'play'\
+                                or move.card.name not in\
+                                [card.name for card in self.board[player]],
                             result))
 
     def play_card(self, card: Card, player: int, pay_option: tuple) -> None:
@@ -202,24 +209,23 @@ class SevenWonders(object):
             (self.wonders[player].stages[self.wonder_stages[player]].immediate_effect, player))
         self.wonder_stages[player] += 1
 
-    def do_move(self, player: int, move: tuple) -> None:
-        type, (card, pay_option) = move
+    def do_move(self, player: int, move: Move) -> None:
         if self.verbose:
-            print(f'player {player} does {type} {card} for {pay_option}')
+            print(f'player {player} does {move.type} {move.card} for {move.pay_option}')
             # print(self.moves(player))
             # print((type, (card, pay_option)))
             # for p in range(self.n_players):
             #     print(p, self.hand[p])
         moves = self.moves(player)
-        assert((type, (card, pay_option)) in moves)
-        if type == 'play':
-            self.play_card(card, player, pay_option)
-        if type == 'sell':
-            self.sell_card(card, player)
-        if type == 'build_wonder':
-            self.build_wonder(player, pay_option)
-        if card in self.hand[player]:
-            self.hand[player].remove(card)
+        assert(move in moves)
+        if move.type == 'play':
+            self.play_card(move.card, player, move.pay_option)
+        if move.type == 'sell':
+            self.sell_card(move.card, player)
+        if move.type == 'build_wonder':
+            self.build_wonder(player, move.pay_option)
+        if move.card in self.hand[player]:
+            self.hand[player].remove(move.card)
 
         # handle play_last_card power
         if len(self.hand[player]) == 1:
@@ -244,10 +250,12 @@ class SevenWonders(object):
         self.actions_queue = []
         if self.verbose:
             for player in range(self.n_players):
-                print(f'player {player} ({len(self.hand[player])})')
+                print(f'player {player}:')
                 print(self.board[player])
                 print(self.resources[player])
                 print(f'{self.coins[player]} coins')
+                print(f'{self.shields[player]} shields')
+                print()
 
 
     

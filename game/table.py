@@ -70,7 +70,7 @@ def play(n_players: int, players: "list[PlayerProcess]",
             for other_player in other_players:
                 game.hand[other_player] = saved_hand[other_player]
             
-    def do_moves(game: SevenWonders, moves: "list[tuple]") -> None:
+    def do_moves(game: SevenWonders, moves: "list[tuple[int][Move]]") -> None:
         for player, move in moves:
             game.do_move(player, move)
         game.resolve_actions()
