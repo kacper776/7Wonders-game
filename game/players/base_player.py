@@ -1,3 +1,4 @@
+from copy import deepcopy
 from multiprocessing.connection import Connection
 from abc import ABC, abstractmethod
 from resource import getrusage, RUSAGE_SELF
@@ -8,12 +9,14 @@ from game import *
 
 class AbstractPlayer(ABC):
     def __init__(self, nr: int, conn: Connection,
-                 prepare_time: float, move_time: float):
+                 prepare_time: float, move_time: float,
+                 n_players: int) -> None:
         self.nr = nr
         self.game = None
         self.conn = conn
         self.prepare_time = prepare_time
         self.move_time = move_time
+        self.n_players = n_players
 
     def suicide(self) -> None:
         self.conn.close()
@@ -44,7 +47,7 @@ class AbstractPlayer(ABC):
     def choose_move(self, moves: "tuple[tuple]") -> tuple:
         raise NotImplementedError
 
-    def play(self):
+    def play(self) -> None:
         self.game = self.get(DATA)
         self.limited_time(self.prepare, self.prepare_time)
         self.send(READY)

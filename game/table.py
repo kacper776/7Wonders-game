@@ -18,14 +18,14 @@ class DeadPlayer(Exception):
 class PlayerProcess(object):
     def __init__(self, player_class: AbstractPlayer, function: Callable,
                  nr: int, prepare_time: float, move_time: float,
-                 human: bool, name: str="") -> None:
+                 n_players: int, human: bool, name: str="") -> None:
         self.name = name
         self.nr = nr
         self.human = human
         self.parent_conn, child_conn = Pipe()
         self.process = Process(target=function,
                                args=(player_class, nr, child_conn,
-                                     prepare_time, move_time),
+                                     prepare_time, move_time, n_players),
                                name=name,
                                daemon=True)
         self.process.start()
@@ -57,6 +57,7 @@ def play(n_players: int, players: "list[PlayerProcess]",
         for process in players:
             process.get(message)
 
+    # TODO: cover discard
     def update_players_data(game: SevenWonders, active_players: "list[int]") -> None:
         saved_hand = [copy(game.hand[player]) for player in range(n_players)]
         for player, process in enumerate(players):
@@ -71,11 +72,16 @@ def play(n_players: int, players: "list[PlayerProcess]",
             
     def do_moves(game: SevenWonders, moves: "list[tuple]") -> None:
         for player, move in moves:
-            type, (card, pay_option) = move
-            game.do_move(player, type, card, pay_option)
+            game.do_move(player, move)
         game.resolve_actions()
 
-    def handle_free_card_from_dicard(game: SevenWonders):
+    def rotate_hands(game: SevenWonders, age: int) -> None:
+        dir = [1, -1, 1][age - 1]
+        saved_hand = [copy(game.hand[player]) for player in range(n_players)]
+        for player in range(n_players):
+            game.hand[player] = saved_hand[(player - dir + n_players) % n_players]
+
+    def handle_free_card_from_dicard(game: SevenWonders) -> None:
         player = game.free_card_choice
         update_players_data(game, [player])
         players[player].send(MOVE)
@@ -85,13 +91,11 @@ def play(n_players: int, players: "list[PlayerProcess]",
     def play_game(game: SevenWonders) -> "list[int]":
         update_players_data(game, range(n_players))
         wait_all(READY)
-        print('all ready')
 
         for age in range(1, 4):
             game.start_age(age)
-            active_players = range(n_players)   
+            active_players = [player for player in range(n_players) if game.hand[player]]
             while active_players:
-                active_players = [player for player in range(n_players) if game.hand[player]]
                 update_players_data(game, active_players)
                 for player in active_players:
                     players[player].send(MOVE)
@@ -103,6 +107,9 @@ def play(n_players: int, players: "list[PlayerProcess]",
                 do_moves(game, moves)
                 if game.free_card_choice:
                     handle_free_card_from_dicard(game)
+                if len(game.hand[0]) > 1:
+                    rotate_hands(game, age)
+                active_players = [player for player in range(n_players) if game.hand[player]]
             game.end_age(age)
 
         send_to_all(END_GAME)
@@ -112,16 +119,14 @@ def play(n_players: int, players: "list[PlayerProcess]",
     for game_nr in range(n_games):
         try:
             wonders = sample(WONDERS, n_players)
-            if verbose:
-                print(f'game nr {game_nr}\nwonders:\n', wonders, sep='')
+            print(f'game nr {game_nr}\nwonders:\n', wonders, sep='')
             game = SevenWonders(n_players, wonders, verbose)
             game_winners = play_game(game)
         except DeadPlayer as dead_player:
             dead = dead_player.nr
             game_winners = [player for player in range(n_players)
                             if player != dead]
-        if verbose:
-            print(f'winners: {game_winners}')
+        print(f'winners: {game_winners}')
         for player in range(n_players):
             if player in game_winners:
                 results[player] += 1
@@ -133,6 +138,7 @@ def play(n_players: int, players: "list[PlayerProcess]",
 
 
 def start_player(player_class: AbstractPlayer, nr: int,
-                 conn: Connection, prepare_time: float, move_time: float):
-    player = player_class(nr, conn, prepare_time, move_time)
+                 conn: Connection, prepare_time: float,
+                 move_time: float, n_players: int) -> None:
+    player = player_class(nr, conn, prepare_time, move_time, n_players)
     player.play()

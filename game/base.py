@@ -127,6 +127,9 @@ class ScientificSymbols(object):
                    self.compass + other.compass
                )
 
-    def points(self):
+    def cnt(self) -> int:
+        return self.slate + self.cog + self.compass
+
+    def points(self) -> int:
         return self.slate**2 + self.cog**2 + self.compass**2\
                + 7 * min(self.slate, self.cog, self.compass)

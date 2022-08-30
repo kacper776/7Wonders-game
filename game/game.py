@@ -1,4 +1,5 @@
 from random import sample
+from math import floor
 
 from base import *
 from effects import *
@@ -18,6 +19,7 @@ class SevenWonders(object):
         self.discard_pile = []
         self.actions_queue = []
         self.free_card_choice = None
+        self.age = 0
         self.deck = [[card for card in CARDS
                       for players in range(2, n_players + 1)
                       if card.age == age and players in card.copies
@@ -51,6 +53,7 @@ class SevenWonders(object):
     def start_age(self, age: int) -> None:
         if self.verbose:
             print(f'starting age {age}')
+        self.age = age
         if age == 3:
             guilds = [card for card in CARDS if card.colour == 'guild']
             guilds_in_play = sample(guilds, self.n_players + 2)
@@ -89,8 +92,13 @@ class SevenWonders(object):
                 card.end_game_effect(self, player)
             for stage in range(self.wonder_stages[player]):
                 self.wonders[player].stages[stage].end_game_effect(self, player)
+            self.points[player] += self.scientific_symbols[player].points()
+            self.points[player] += floor(self.coins[player] / 3)
         winner_score = max([(self.points[player], self.coins[player])
                             for player in range(self.n_players)])
+        if self.verbose:
+            for player in range(self.n_players):
+                print(f'player {player} got {self.points[player]} points')
         return [player for player in range(self.n_players)
                 if (self.points[player], self.coins[player]) == winner_score]
 
@@ -116,18 +124,20 @@ class SevenWonders(object):
                                                                             resources_l.refined())])
 
                         max_raw_right = sum([min(to_buy, right_has)
-                                            for to_buy, right_has in zip(need_to_buy.raw(),
-                                                                         resources_r.raw())])
+                                             for to_buy, right_has in zip(need_to_buy.raw(),
+                                                                          resources_r.raw())])
                         max_refined_right = sum([min(to_buy, right_has)
-                                                for to_buy, right_has in zip(need_to_buy.refined(),
-                                                                             resources_r.refined())])
+                                                 for to_buy, right_has in zip(need_to_buy.refined(),
+                                                                              resources_r.refined())])
 
                         result.update([(raw_l * self.raw_costs[player][0]\
                                         + ref_l * self.refined_costs[player][0],
                                         (need_to_buy.raw_cnt() - raw_l) * self.raw_costs[player][1]\
                                         + (need_to_buy.refined_cnt() - ref_l) * self.refined_costs[player][1])
-                                       for raw_l in range(need_to_buy.raw_cnt() - max_raw_right, max_raw_left)
-                                       for ref_l in range(need_to_buy.refined_cnt() - max_refined_right, max_refined_left)])
+                                       for raw_l in range(need_to_buy.raw_cnt() - max_raw_right,
+                                                          max_raw_left + 1)
+                                       for ref_l in range(need_to_buy.refined_cnt() - max_refined_right,
+                                                          max_refined_left + 1)])
         coins_to_trade = self.coins[player] - cost.coins
         return set(filter(lambda payments: sum(payments) <= coins_to_trade, result))
 
@@ -157,7 +167,10 @@ class SevenWonders(object):
             for option in pay_options:
                 for card in self.hand[player]:
                     result.append(('build_wonder', (card, option)))
-        return tuple(result)
+        return tuple(filter(lambda move: move[0] != 'play'\
+                            or move[1][0].name not in\
+                            [card.name for card in self.board[player]],
+                            result))
 
     def play_card(self, card: Card, player: int, pay_option: tuple) -> None:
         if pay_option[0] == self.SPECIAL_OLYPMIA or pay_option[1] == self.SPECIAL_OLYPMIA:
@@ -189,7 +202,8 @@ class SevenWonders(object):
             (self.wonders[player].stages[self.wonder_stages[player]].immediate_effect, player))
         self.wonder_stages[player] += 1
 
-    def do_move(self, player: int, type: str, card: Card, pay_option: tuple = FREE_OPTION) -> None:
+    def do_move(self, player: int, move: tuple) -> None:
+        type, (card, pay_option) = move
         if self.verbose:
             print(f'player {player} does {type} {card} for {pay_option}')
             # print(self.moves(player))
@@ -224,16 +238,16 @@ class SevenWonders(object):
                     self.special_powers[player][i] = ('free_card_from_discard', USED)
                     self.free_card_choice = player
                     
-
     def resolve_actions(self) -> None:
         for action, player in self.actions_queue:
             action(self, player)
         self.actions_queue = []
         if self.verbose:
-            print('Board:')
             for player in range(self.n_players):
-                print(f'{player}: {self.board[player]}')
+                print(f'player {player} ({len(self.hand[player])})')
+                print(self.board[player])
                 print(self.resources[player])
+                print(f'{self.coins[player]} coins')
 
 
     

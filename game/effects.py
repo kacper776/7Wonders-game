@@ -167,7 +167,8 @@ def free_card_per_age_effect(game, player: int):
 
 
 def free_card_from_discard_effect(game, player: int):
-    game.special_powers[player].append(('free_card_from_discard', READY))
+    if [card for card in game.discard_pile if card not in game.board[player]]:
+        game.special_powers[player].append(('free_card_from_discard', READY))
 
 
 def play_last_card_effect(game, player: int):
