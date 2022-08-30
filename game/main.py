@@ -4,11 +4,14 @@ from game import *
 from table import play, PlayerProcess, start_player
 from players.semi_random_player import *
 from players.human_player import *
-# from wonders import WONDERS
+from players.monte_carlo_player import *
+from players.score_player import *
 
 player_types = [
     HumanPlayer,
     SemiRandomPlayer,
+    MonteCarloPlayer,
+    ScorePlayer
 ]
 
 
@@ -24,7 +27,7 @@ if __name__ == '__main__':
     n_players = len(args.players)
     human_nr = player_types.index(HumanPlayer)
     players = [PlayerProcess(player_types[args.players[nr]],
-                             start_player, nr, args.p, args.m,
+                             start_player, nr, args.p, args.m, n_players,
                              args.players[nr] == human_nr, str(nr))
                for nr in range(n_players)]
     result = play(n_players, players, args.verbose, args.num_games)
