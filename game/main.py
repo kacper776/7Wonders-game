@@ -6,12 +6,15 @@ from players.semi_random_player import *
 from players.human_player import *
 from players.monte_carlo_player import *
 from players.score_player import *
+from players.opps_player import *
+from wonders import WONDERS
 
 player_types = [
     HumanPlayer,
     SemiRandomPlayer,
     MonteCarloPlayer,
-    ScorePlayer
+    ScorePlayer,
+    OppsPlayer
 ]
 
 

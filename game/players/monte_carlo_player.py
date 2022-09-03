@@ -1,8 +1,9 @@
-from copy import deepcopy, copy
+from copy import copy
 from random import choice
 from math import sqrt, log
 
 from game import *
+from heuristics import fill_unknown_information
 from players.base_player import AbstractPlayer
 
 INF = 1000000000.0
@@ -10,32 +11,13 @@ INF = 1000000000.0
 
 class MonteCarloPlayer(AbstractPlayer):
     def random_game(self, first_move: Move) -> bool:
-        def rotate_hands(game: SevenWonders, age: int) -> None:
-            dir = [1, -1, 1][age - 1]
+        def rotate_hands(game: SevenWonders) -> None:
+            dir = [-1, 1, -1][game.age - 1]
             saved_hand = [copy(game.hand[player])
                           for player in range(self.n_players)]
             for player in range(self.n_players):
                 game.hand[player] = saved_hand[(player - dir + self.n_players)\
                                                 % self.n_players]
-
-        def fill_other_players_hands(game: SevenWonders, age: int) -> None:
-            curr_hand_size = len(game.hand[self.nr])
-            age_cards = [card for card in CARDS
-                         for players in range(2, self.n_players + 1)
-                         if card.age == age and players in card.copies]
-            for player in range(self.n_players):
-                for card in game.board[player]:
-                    if card in age_cards:
-                        age_cards.remove(card) 
-            for card in game.hand[self.nr]:
-                age_cards.remove(card)
-
-            for player in range(self.n_players):
-                if player == self.nr:
-                    continue
-                game.hand[player] = sample(age_cards, curr_hand_size)
-                for card in game.hand[player]:
-                    age_cards.remove(card)
         
         def semi_random_move(moves: "list[Move]") -> tuple:
             non_sell_moves = [move for move in moves if move.type != 'sell']
@@ -43,17 +25,18 @@ class MonteCarloPlayer(AbstractPlayer):
                 return choice(non_sell_moves)
             return choice(moves)
 
-        game = deepcopy(self.game)
-        game.verbose = False
+        game = self.game.copy()
         curr_age = game.age
         first_move_done = False
-        fill_other_players_hands(game, curr_age)
 
         if game.free_card_choice == self.nr:
             free_card_move = first_move
             game.do_move(self.nr, free_card_move)
             game.resolve_actions()
             first_move_done = True
+
+        fill_unknown_information(game, self.nr, self.hands_seen,
+                                 self.discard_seen)
         
         for age in range(curr_age, 4):
             if age != curr_age:
@@ -76,7 +59,7 @@ class MonteCarloPlayer(AbstractPlayer):
                     game.do_move(game.free_card_choice, free_card_move)
                     game.resolve_actions()
                 if len(game.hand[self.nr]) > 1:
-                    rotate_hands(game, age)
+                    rotate_hands(game)
                 active_players = [player for player in range(self.n_players)
                                   if game.hand[player]]
             game.end_age(age)
@@ -112,10 +95,13 @@ class MonteCarloPlayer(AbstractPlayer):
                      for card in CARDS}
 
     def choose_move(self, moves: "list[Move]") -> Move:
+        non_sell_moves = [move for move in moves if move.type != 'sell']
+        if non_sell_moves:
+            moves = non_sell_moves
         for _ in range(self.n_simulations):
             self.do_simulation(moves)
-        best_type_and_card = max(moves, key=lambda move:
-                                    self.simulations[(move.type, move.card)])
+        best_type_and_card = max(moves, key=lambda move: self.wins[(move.type, move.card)]\
+                                 / self.simulations[(move.type, move.card)])
         best_moves = [move
                       for move in moves
                       if (move.type, move.card) == (best_type_and_card.type,

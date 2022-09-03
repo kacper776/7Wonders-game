@@ -57,32 +57,41 @@ def play(n_players: int, players: "list[PlayerProcess]",
         for process in players:
             process.get(message)
 
-    # TODO: cover discard
     def update_players_data(game: SevenWonders, active_players: "list[int]") -> None:
         saved_hand = [copy(game.hand[player]) for player in range(n_players)]
+        saved_discard = copy(game.discard_pile)
+        saved_verbose = game.verbose
+        game.discard_pile = []
+        game.verbose = False
         for player, process in enumerate(players):
             if player not in active_players:
                 continue
             other_players = [p for p in range(n_players) if p != player]
             for other_player in other_players:
                 game.hand[other_player] = None
-            process.send(DATA, game)
+            if game.free_card_choice == player:
+                process.send(DATA, (game, saved_discard))
+            else:
+                process.send(DATA, (game, game.hand[player]))
             for other_player in other_players:
                 game.hand[other_player] = saved_hand[other_player]
+            game.discard_pile = saved_discard
+            game.verbose = saved_verbose
             
     def do_moves(game: SevenWonders, moves: "list[tuple[int][Move]]") -> None:
         for player, move in moves:
             game.do_move(player, move)
         game.resolve_actions()
 
-    def rotate_hands(game: SevenWonders, age: int) -> None:
-        dir = [1, -1, 1][age - 1]
+    def rotate_hands(game: SevenWonders) -> None:
+        dir = [-1, 1, -1][game.age - 1]
         saved_hand = [copy(game.hand[player]) for player in range(n_players)]
         for player in range(n_players):
             game.hand[player] = saved_hand[(player - dir + n_players) % n_players]
 
     def handle_free_card_from_dicard(game: SevenWonders) -> None:
         player = game.free_card_choice
+        assert(game.moves(player))
         update_players_data(game, [player])
         players[player].send(MOVE)
         move = players[player].get(MOVE)
@@ -108,7 +117,7 @@ def play(n_players: int, players: "list[PlayerProcess]",
                 if game.free_card_choice:
                     handle_free_card_from_dicard(game)
                 if len(game.hand[0]) > 1:
-                    rotate_hands(game, age)
+                    rotate_hands(game)
                 active_players = [player for player in range(n_players) if game.hand[player]]
             game.end_age(age)
 
@@ -124,6 +133,7 @@ def play(n_players: int, players: "list[PlayerProcess]",
             game_winners = play_game(game)
         except DeadPlayer as dead_player:
             dead = dead_player.nr
+            print(f'player {dead} not responding...')
             game_winners = [player for player in range(n_players)
                             if player != dead]
         print(f'winners: {game_winners}')
