@@ -140,3 +140,6 @@ class Move(object):
     type: str
     card: Card
     pay_option: "tuple[int][int]"
+
+    def __repr__(self) -> str:
+        return f'{self.type} {self.card} for {self.pay_option}'

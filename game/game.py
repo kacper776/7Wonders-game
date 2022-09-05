@@ -115,7 +115,7 @@ class SevenWonders(object):
                     self.special_powers[player][i] = ('free_card_per_age', READY)
                     break
 
-    def end_age(self, age: int) -> None:
+    def end_age(self, age: int, player_names: "list[str]"=None) -> None:
         if self.verbose:
             print(f'ending age {age}')
         for player in range(self.n_players):
@@ -130,7 +130,7 @@ class SevenWonders(object):
                 new_tokens.append(self.CONFLICT_TOKENS[0])
             self.tokens[player].extend(new_tokens)
             if self.verbose:
-                print(f'player {player} got {sorted(new_tokens)} tokens')
+                print(f'{player_names[player]} got {sorted(new_tokens)} tokens')
 
     def end_game(self) -> "list[int]":
         for player in range(self.n_players):
@@ -143,9 +143,6 @@ class SevenWonders(object):
             self.points[player] += sum(self.tokens[player])
         winner_score = max([(self.points[player], self.coins[player])
                             for player in range(self.n_players)])
-        if self.verbose:
-            for player in range(self.n_players):
-                print(f'player {player} got {self.points[player]} points')
         return [player for player in range(self.n_players)
                 if (self.points[player], self.coins[player]) == winner_score]
 
@@ -254,9 +251,9 @@ class SevenWonders(object):
             (self.wonders[player].stages[self.wonder_stages[player]].immediate_effect, player))
         self.wonder_stages[player] += 1
 
-    def do_move(self, player: int, move: Move) -> None:
+    def do_move(self, player: int, move: Move, player_name: str='') -> None:
         if self.verbose:
-            print(f'player {player} does {move.type} {move.card} for {move.pay_option}')
+            print(f'{player_name} does {move}')
             # print(self.moves(player))
             # print((type, (card, pay_option)))
             # for p in range(self.n_players):
@@ -275,7 +272,7 @@ class SevenWonders(object):
             self.hand[player].remove(move.card)
 
 
-    def resolve_actions(self) -> None:
+    def resolve_actions(self, player_names: "list[str]"='') -> None:
         for action, player in self.actions_queue:
             action(self, player)
         self.actions_queue = []
@@ -302,15 +299,18 @@ class SevenWonders(object):
 
         if self.verbose:
             for player in range(self.n_players):
-                print(f'player {player}:')
+                print()
+                print(f'{player_names[player]}:')
                 print(f'cards built: {self.board[player]}')
-                print(f'have resources: {self.resources[player]}')
+                print('have resources: ')
+                for resource_option in self.resources[player]:
+                    print(resource_option)
                 print(f'{self.coins[player]} coins')
                 print((f'{self.shields[player]} shields, '
                        f'victory tokens: {self.tokens[player]}'))
                 print((f'wonder {self.wonders[player].name}, '
                        f'{self.wonder_stages[player]} stages built'))
-                print()
+            print()
 
 
     

@@ -14,7 +14,7 @@ def resource_score(game: SevenWonders, nr: int) -> float:
     for player in range(n_players):
         for card in game.board[player]:
             cards_in_play.remove(card)
-    can_buy = [card for card in cards_in_play
+    can_play = [card for card in cards_in_play
                     if game.pay_options(nr, card.cost)]
     can_build = [stage for stage in game.wonders[nr].stages[game.wonder_stages[nr]:]
                  if game.pay_options(nr, stage.cost)]
@@ -28,7 +28,8 @@ def resource_score(game: SevenWonders, nr: int) -> float:
                             * (game.refined_costs[nr][0] == 1)\
                          + game.resources[game.right(nr)][0].refined_cnt()\
                             * int(game.refined_costs[nr][1] == 1)
-    return 0.4 * len(can_buy) + len(can_build) + 1.3/age * my_raw + 1.7/age * my_refined +\
+    return 0.4 * len(can_play) + len(can_build) +\
+           1.3/age * my_raw + 1.7/age * my_refined +\
            0.8 * discounted_raw + discounted_refined
 
 def points_score(game: SevenWonders, nr: int) -> float:
@@ -54,6 +55,7 @@ def science_score(game: SevenWonders, nr: int) -> float:
            + game.scientific_symbols[nr].points()
 
 def special_score(game: SevenWonders, nr: int):
+    # cards with effect that can be improving in time
     improving_cards = {
         'traders_guild',
         'philosophers_guild',
@@ -63,10 +65,11 @@ def special_score(game: SevenWonders, nr: int):
         'scientists_guild',
         'magistrates_guild',
         'builders_guild',
-        'haven',
         'lighthouse',
         'arena'
     }
+
+    # wonder stages with unique abilities
     olympiaA_second_stage_scores = [5, 3.5, 2]
     babylonB_second_stage_scores = [7, 5.5, 2]
     card_from_discard_scores = [0, 4, 6, 8]
@@ -74,7 +77,7 @@ def special_score(game: SevenWonders, nr: int):
     score = 0.0
     for power, ready in game.special_powers[nr]:
         if power == 'free_card_from_discard' and ready:
-            last_card_in_age = int(len(game.hand[nr]) == 2)
+            last_card_in_age = (len(game.hand[nr]) == 2)
             score += card_from_discard_scores[age-1 + last_card_in_age]
         if power == 'free_card_per_age':
             score += olympiaA_second_stage_scores[age-1]
@@ -134,17 +137,16 @@ def move_score(move: Move, game: SevenWonders, nr: int) -> float:
 
 
 def state_score(game: SevenWonders, nr: int):
+    game.end_game()
     result_score = overall_score(game, nr)
-    other_scores = []
-    for player in range(game.n_players):
-        if player == nr:
-            continue
-        other_scores.append(overall_score(game, player))
+    other_scores = [overall_score(game, player)
+                    for player in range(game.n_players)
+                    if player != nr]
     other_scores = sorted(other_scores, reverse=True)
-    mult = 0.2
+    mult = 0.4
     for score in other_scores:
         result_score -= score * mult
-        mult -= 0.1
+        mult = max(0, mult - 0.1)
     return result_score        
 
 
@@ -192,7 +194,8 @@ def fill_unknown_information(game: SevenWonders, nr: int,
             continue
         if not game.hand[player]:
             game.hand[player] = []
-        hand_fill = sample(age_cards, curr_hand_size - len(game.hand[player]))
+        hand_fill = sample(age_cards,
+                           max(0, curr_hand_size - len(game.hand[player])))
         for card in hand_fill:
             age_cards.remove(card)
             game.hand[player].append(card)

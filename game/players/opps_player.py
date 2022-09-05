@@ -109,6 +109,7 @@ class OppsPlayer(AbstractPlayer):
         move_wins = {move: 0 for move in moves}
         for _ in range(self.REPEATS):
             game = self.game.copy()
+            assert(not self.game.free_card_choice)
             fill_unknown_information(game, self.nr,
                                      self.hands_seen, self.discard_seen)
             _, best_move = opps(game, self.DEPTH, self.nr)

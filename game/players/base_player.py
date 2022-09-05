@@ -30,6 +30,8 @@ class AbstractPlayer(ABC):
     def get(self, message_type: str) -> object:
         type_got, data = self.conn.recv()
         if type_got == END_GAME:
+            self.hands_seen = []
+            self.discard_seen = []
             self.play()
         assert(type_got == message_type)
         return data
@@ -59,7 +61,7 @@ class AbstractPlayer(ABC):
         raise NotImplementedError
 
     def play(self) -> None:
-        self.game, _ = self.get(DATA)
+        self.game, self.nr = self.get(DATA)
         self.limited_time(self.prepare, self.prepare_time)
         self.send(READY)
         while True:
