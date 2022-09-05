@@ -50,10 +50,10 @@ class PlayerProcess(object):
                                daemon=True)
         self.process.start()
         
-    def send(self, message_type, message=None) -> None:
+    def send(self, message_type: bytes, message: object=None) -> None:
         self.parent_conn.send((message_type, message))
 
-    def get(self, message_type):
+    def get(self, message_type: bytes) -> object:
         try:
             type_got, data = self.parent_conn.recv()
         except EOFError:
@@ -92,7 +92,7 @@ def play(n_players: int, players: "list[PlayerProcess]",
                 game.hand[other_player] = None
             if new_game:
                 process.send(DATA, (game, player))
-            elif game.free_card_choice == player:
+            elif game.free_card_player == player:
                 process.send(DATA, (game, saved_discard))
             else:
                 process.send(DATA, (game, game.hand[player]))
@@ -114,7 +114,7 @@ def play(n_players: int, players: "list[PlayerProcess]",
             game.hand[player] = saved_hand[(player - dir + n_players) % n_players]
 
     def handle_free_card_from_dicard(game: SevenWonders) -> None:
-        player = game.free_card_choice
+        player = game.free_card_player
         update_players_data(game, [player])
         players[player].send(MOVE)
         move = players[player].get(MOVE)
@@ -137,7 +137,7 @@ def play(n_players: int, players: "list[PlayerProcess]",
                 moves = [(process.nr, process.get(MOVE), process.name) for process in players
                          if process.nr in active_players]
                 do_moves(game, moves)
-                if game.free_card_choice:
+                if game.free_card_player:
                     handle_free_card_from_dicard(game)
                 if len(game.hand[0]) > 1:
                     rotate_hands(game)
@@ -148,6 +148,7 @@ def play(n_players: int, players: "list[PlayerProcess]",
         return game.end_game()                
 
     results = {process.name: 0 for process in players}
+    timeouts = 0
     table_permutation = permutations(range(n_players))
     next(table_permutation)
     for game_nr in range(n_games):
@@ -165,8 +166,10 @@ def play(n_players: int, players: "list[PlayerProcess]",
         except DeadPlayer as dead_player:
             dead = dead_player.nr
             print(f'player {dead} not responding...')
-            game_winners = [player for player in range(n_players)
-                            if player != dead]
+            # game_winners = [player for player in range(n_players)
+            #                 if player != dead]
+            game_winners = []
+            timeouts += 1
             for process in players:
                 process.restart()
         winners = [process.name
@@ -176,7 +179,8 @@ def play(n_players: int, players: "list[PlayerProcess]",
         for process in players:
             if process.nr in game_winners:
                 results[process.name] += 1
-        print(f'\nwins so far: {results}\n')
+        print(f'\nwins so far: {results}')
+        print(f'timeouts: {timeouts}\n')
 
         new_permutation = next(table_permutation)
         players = sorted(players, key=lambda process: process.original_nr)

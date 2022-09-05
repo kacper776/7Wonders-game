@@ -16,7 +16,7 @@ class ScorePlayer(AbstractPlayer):
         #     print(move, end=' ')
         #     print(move_score(move, self.game, self.nr))
         # print()
-        if self.game.free_card_choice == self.nr:
+        if self.game.free_card_player == self.nr:
             return max(moves,
                        key=lambda move: move_score(move,
                                                    self.game,

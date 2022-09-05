@@ -40,9 +40,9 @@ def random_game(game: SevenWonders, first_move: Move, nr: int,
                         first_move_done = True
                     game.do_move(player, move)
                 game.resolve_actions()
-                if game.free_card_choice:
-                    free_card_move = choice(game.moves(game.free_card_choice))
-                    game.do_move(game.free_card_choice, free_card_move)
+                if game.free_card_player:
+                    free_card_move = choice(game.moves(game.free_card_player))
+                    game.do_move(game.free_card_player, free_card_move)
                     game.resolve_actions()
                 if len(game.hand[nr]) > 1:
                     rotate_hands(game)

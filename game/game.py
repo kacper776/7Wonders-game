@@ -20,7 +20,7 @@ class SevenWonders(object):
         self.n_players = n_players
         self.discard_pile = []
         self.actions_queue = []
-        self.free_card_choice = None
+        self.free_card_player = None
         self.age = 0
         self.deck = [[card for card in CARDS
                       for players in range(2, n_players + 1)
@@ -52,7 +52,7 @@ class SevenWonders(object):
         result = SevenWonders(self.n_players, self.wonders)
         result.discard_pile = copy(self.discard_pile)
         result.actions_queue = copy(self.actions_queue)
-        result.free_card_choice = self.free_card_choice
+        result.free_card_player = self.free_card_player
         result.age = self.age
         result.deck = []
         for age_deck in self.deck:
@@ -193,7 +193,7 @@ class SevenWonders(object):
         return [chain for card in self.board[player] for chain in card.chains]
 
     def moves(self, player: int) -> "list[Move]":
-        if player == self.free_card_choice:
+        if player == self.free_card_player:
             return [Move('play', d_card, (self.SPECIAL_DISCARD, self.SPECIAL_DISCARD)) 
                     for d_card in self.discard_pile if d_card not in self.board[player]]
         result = []
@@ -221,7 +221,7 @@ class SevenWonders(object):
                                 [card.name for card in self.board[player]],
                             result))
 
-    def play_card(self, card: Card, player: int, pay_option: tuple) -> None:
+    def play_card(self, card: Card, player: int, pay_option: "tuple[int][int]") -> None:
         if pay_option[0] == self.SPECIAL_OLYPMIA or pay_option[1] == self.SPECIAL_OLYPMIA:
             for i, (power, ready) in enumerate(self.special_powers[player]):
                 if power == 'free_card_per_age':
@@ -229,7 +229,7 @@ class SevenWonders(object):
                     break
         elif pay_option[0] == self.SPECIAL_DISCARD or pay_option[1] == self.SPECIAL_DISCARD:
             self.discard_pile.remove(card)
-            self.free_card_choice = None
+            self.free_card_player = None
         else:
             self.coins[player] -= card.cost.coins
             self.coins[player] -= sum(pay_option)
@@ -242,7 +242,7 @@ class SevenWonders(object):
         self.discard_pile.append(card)
         self.coins[player] += 3
 
-    def build_wonder(self, player: int, pay_option: tuple) -> None:
+    def build_wonder(self, player: int, pay_option: "tuple[int][int]") -> None:
         self.coins[player] -= self.wonders[player].stages[self.wonder_stages[player]].cost.coins
         self.coins[player] -= sum(pay_option)
         self.coins[self.left(player)] += pay_option[0]
@@ -293,9 +293,9 @@ class SevenWonders(object):
             for i, (power, ready) in enumerate(self.special_powers[player]):
                 if power == 'free_card_from_discard' and ready:
                     self.special_powers[player][i] = ('free_card_from_discard', USED)
-                    self.free_card_choice = player
+                    self.free_card_player = player
                     if not self.moves(player):
-                        self.free_card_choice = None
+                        self.free_card_player = None
 
         if self.verbose:
             for player in range(self.n_players):

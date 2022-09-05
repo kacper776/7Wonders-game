@@ -24,10 +24,10 @@ class AbstractPlayer(ABC):
         self.conn.close()
         exit(0)
 
-    def send(self, message_type: str, message=None) -> None:
+    def send(self, message_type: bytes, message: object=None) -> None:
         self.conn.send((message_type, message))
     
-    def get(self, message_type: str) -> object:
+    def get(self, message_type: bytes) -> object:
         type_got, data = self.conn.recv()
         if type_got == END_GAME:
             self.hands_seen = []
@@ -45,7 +45,7 @@ class AbstractPlayer(ABC):
         return result
 
     def remember_hand(self, hand: "list[Card]") -> None:
-        if self.game.free_card_choice == self.nr:
+        if self.game.free_card_player == self.nr:
             self.discard_seen = hand
         else:
             if len(self.hands_seen) == 6:
@@ -67,7 +67,7 @@ class AbstractPlayer(ABC):
         while True:
             self.game, hand = self.get(DATA)
             self.get(MOVE)
-            if self.game.free_card_choice == self.nr:
+            if self.game.free_card_player == self.nr:
                 self.game.discard_pile = hand
             move = self.limited_time(self.choose_move,
                                      self.move_time,

@@ -1,6 +1,6 @@
 from copy import copy
 from itertools import product
-import cProfile
+from random import choice
 
 from game import SevenWonders
 from base import *
@@ -35,8 +35,8 @@ def opps(state: SevenWonders, depth: int, nr: int,
 
     def resolve_state(state: SevenWonders):
         state.resolve_actions()
-        if state.free_card_choice:
-            player = state.free_card_choice
+        if state.free_card_player:
+            player = state.free_card_player
             move = max(state.moves(player),
                        key=lambda move: move_score(move, state, player))
             state.do_move(player, move)
@@ -49,16 +49,27 @@ def opps(state: SevenWonders, depth: int, nr: int,
             if age < 3:
                 state.start_age(age + 1)
 
+    def one_pay_option_moves(moves: "list[Move]") -> "list[Move]":
+        result = []
+        types_and_cards = {(move.type, move.card) for move in moves}
+        for type, card in types_and_cards:
+            result.append(choice(list(filter(lambda move: move.type == type\
+                                                      and move.card == card,
+                                             moves))))
+        return result
+
     if terminal(state):
         return ((INF if nr in state.end_game() else -INF), None)
     if depth == 0:
+        state.resolve_actions()
         return (state_score(state, nr), None)
     if my_turn(state):
         value = -INF
         best_move = None
         moves = state.moves(nr)
+        moves = one_pay_option_moves(moves)
         non_sell_moves = [move for move in moves if move.type != 'sell']
-        if non_sell_moves:
+        if len(non_sell_moves) >= 3:
             moves = non_sell_moves
         for move in moves:
             new_state = state.copy()
@@ -99,17 +110,16 @@ def opps(state: SevenWonders, depth: int, nr: int,
 class OppsPlayer(AbstractPlayer):
     def prepare(self) -> None:
         self.DEPTH = 3
-        self.REPEATS = 5
+        self.REPEATS = 4
 
     def choose_move(self, moves: "list[Move]") -> Move:
-        if self.game.free_card_choice == self.nr:
+        if self.game.free_card_player == self.nr:
             moves = self.game.moves(self.nr)
             return max(moves,
                        key=lambda move: move_score(move, self.game, self.nr))
         move_wins = {move: 0 for move in moves}
         for _ in range(self.REPEATS):
             game = self.game.copy()
-            assert(not self.game.free_card_choice)
             fill_unknown_information(game, self.nr,
                                      self.hands_seen, self.discard_seen)
             _, best_move = opps(game, self.DEPTH, self.nr)
