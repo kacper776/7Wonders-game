@@ -183,8 +183,8 @@ class SevenWonders(object):
                                        for ref_l in range(need_to_buy.refined_cnt() - max_refined_right,
                                                           max_refined_left + 1)])
         coins_to_trade = self.coins[player] - cost.coins
-        minimal_cost = sum(min(result, key=lambda payments: sum(payments),
-                               default=self.FREE_OPTION))
+        minimal_cost = max(0, sum(min(result, key=lambda payments: sum(payments),
+                                      default=self.FREE_OPTION)))
         if minimal_cost > coins_to_trade:
             return set()
         return set(filter(lambda payments: sum(payments) == minimal_cost, result))
@@ -195,7 +195,8 @@ class SevenWonders(object):
     def moves(self, player: int) -> "list[Move]":
         if player == self.free_card_player:
             return [Move('play', d_card, (self.SPECIAL_DISCARD, self.SPECIAL_DISCARD)) 
-                    for d_card in self.discard_pile if d_card not in self.board[player]]
+                    for d_card in self.discard_pile 
+                    if d_card.name not in [card.name for card in self.board[player]]]
         result = []
         player_chains = self.chains(player)
         for card in self.hand[player]:
@@ -216,7 +217,7 @@ class SevenWonders(object):
             for option in pay_options:
                 for card in self.hand[player]:
                     result.append(Move('build_wonder', card, option))
-        return tuple(filter(lambda move: move.type != 'play'\
+        return list(filter(lambda move: move.type != 'play'\
                                 or move.card.name not in\
                                 [card.name for card in self.board[player]],
                             result))
