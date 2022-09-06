@@ -1,4 +1,4 @@
-from random import sample
+from random import sample, choice
 
 from base import *
 from cards import CARDS
@@ -15,7 +15,7 @@ def resource_score(game: SevenWonders, nr: int) -> float:
         for card in game.board[player]:
             cards_in_play.remove(card)
     can_play = [card for card in cards_in_play
-                    if game.pay_options(nr, card.cost)]
+                if game.pay_options(nr, card.cost)]
     can_build = [stage for stage in game.wonders[nr].stages[game.wonder_stages[nr]:]
                  if game.pay_options(nr, stage.cost)]
     my_raw = game.resources[nr][0].raw_cnt()
@@ -194,6 +194,8 @@ def fill_unknown_information(game: SevenWonders, nr: int,
             continue
         if not game.hand[player]:
             game.hand[player] = []
+        while curr_hand_size - len(game.hand[player]) > len(age_cards):
+            age_cards.append(choice(discard_seen))
         hand_fill = sample(age_cards,
                            max(0, curr_hand_size - len(game.hand[player])))
         for card in hand_fill:
