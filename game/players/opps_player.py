@@ -124,10 +124,6 @@ class OppsPlayer(AbstractPlayer):
                                      self.hands_seen, self.discard_seen)
             _, best_move = opps(game, self.DEPTH, self.nr)
             move_wins[best_move] += 1
-        # print(sorted(moves,
-        #              key=lambda move: move_score(move, self.game, self.nr),
-        #              reverse=True))
-        # print({move: wins for move, wins in move_wins.items() if wins > 0})
         return max(moves,
                    key=lambda move: (move_wins[move],
                                      move_score(move, self.game, self.nr)))

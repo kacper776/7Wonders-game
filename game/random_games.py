@@ -4,7 +4,8 @@ from game import *
 from heuristics import fill_unknown_information
 
 def random_game(game: SevenWonders, first_move: Move, nr: int,
-                hands_seen: "list[list[Move]]", discard_seen: "list[Move]") -> bool:
+                hands_seen: "list[list[Move]]",
+                discard_seen: "list[Move]") -> "tuple[bool][list[Move]]":
         n_players = len(game.board)
         def rotate_hands(game: SevenWonders) -> None:
             dir = [-1, 1, -1][game.age - 1]
@@ -22,6 +23,7 @@ def random_game(game: SevenWonders, first_move: Move, nr: int,
 
         game = game.copy()
         curr_age = game.age
+        moves_done = []
         first_move_done = False
 
         fill_unknown_information(game, nr, hands_seen,
@@ -38,6 +40,8 @@ def random_game(game: SevenWonders, first_move: Move, nr: int,
                     if not first_move_done and player == nr:
                         move = first_move
                         first_move_done = True
+                    if player == nr and age == curr_age:
+                        moves_done.append(move)
                     game.do_move(player, move)
                 game.resolve_actions()
                 if game.free_card_player:
@@ -50,6 +54,6 @@ def random_game(game: SevenWonders, first_move: Move, nr: int,
                                   if game.hand[player]]
             game.end_age(age)
 
-        return nr in game.end_game()
+        return (nr in game.end_game(), moves_done)
 
     

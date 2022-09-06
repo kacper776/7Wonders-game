@@ -19,17 +19,24 @@ class MonteCarloPlayer(AbstractPlayer):
                             else 0
         return self.wins[type_card] / self.simulations[type_card] + exploration_bonus 
 
-    def do_simulation(self, move: Move) -> None:
+    def do_simulation(self, first_move: Move) -> None:
         age = self.game.age
         self.all_simulations[age] += 1
-        self.simulations[(move.type, move.card)] += 1
-        self.wins[(move.type, move.card)] += random_game(self.game,
-                                                         move, self.nr,
-                                                         self.hands_seen,
-                                                         self.discard_seen)
+        # self.simulations[(move.type, move.card)] += 1
+        # self.wins[(move.type, move.card)] += random_game(self.game,
+        #                                                  move, self.nr,
+        #                                                  self.hands_seen,
+        #                                                  self.discard_seen)
+        win, moves_done = random_game(self.game,
+                                      first_move, self.nr,
+                                      self.hands_seen,
+                                      self.discard_seen)
+        for move in moves_done:
+            self.wins[(move.type, move.card)] += win
+            self.simulations[(move.type, move.card)] += 1
 
     def prepare(self) -> None:
-        self.n_simulations = 200
+        self.n_simulations = 250
         self.all_simulations = [0, 0, 0, 0]
         self.simulations = {(type, card): 0
                             for type in ('play', 'sell', 'build_wonder')

@@ -99,7 +99,7 @@ def play(n_players: int, players: "list[PlayerProcess]",
             for other_player in other_players:
                 game.hand[other_player] = saved_hand[other_player]
             game.discard_pile = saved_discard
-            game.verbose = saved_verbose
+        game.verbose = saved_verbose
             
     def do_moves(game: SevenWonders, moves: "list[tuple[int][Move][str]]") -> None:
         for player, move, name in moves:
