@@ -1,4 +1,5 @@
-# 7Wonders-game
+# 7 Cudów Świata
+autor: kacper Solecki
 
 ## Aby uruchomić grę:
 
