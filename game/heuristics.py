@@ -6,7 +6,7 @@ from game import SevenWonders
 
 # coefficients
 CAN_PLAY_CARD = 0.7
-CAN_BUILD_WONDER = 7.0
+CAN_BUILD_WONDER = 3.5
 RAW = 0.25
 REFINED = 0.85
 DISC_RAW = 0.5
