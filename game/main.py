@@ -35,8 +35,25 @@ def play_with_args(args) -> "dict[str][int]":
     human_nr = player_types.index(HumanPlayer)
     humans = len([nr for nr in args.players if nr == human_nr])
     if humans > 1:
-        print('maxiumum of 1 human player')
+        print('Error: Maxiumum of 1 human player')
         exit(0)
+    
+    if args.num_games <= 0:
+        print('Error: Non-positive number of games')
+        exit(0)
+
+    if args.p <= 0:
+        print('Error: Non-positive prepare time limit')
+        exit(0)
+
+    if args.m <= 0:
+        print('Error: Non-positive move time limit')
+        exit(0)
+
+    for i in args.players:
+        if i < 0 or i >= len(player_types):
+            print(f'Error: Unknown player type {i}')
+            exit(0)
 
     if humans:
         args.verbose = 1
