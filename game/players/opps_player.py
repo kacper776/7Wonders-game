@@ -84,8 +84,8 @@ def opps(state: SevenWonders, depth: int, nr: int,
         return value, best_move
 
     value = INF
-    other_players = list([player for player in range(state.n_players)
-                          if player != nr])
+    other_players = [player for player in range(state.n_players)
+                     if player != nr]
     moves = [sorted(state.moves(player),
                     key=lambda move: move_score(move, state, player),
                     reverse=True)

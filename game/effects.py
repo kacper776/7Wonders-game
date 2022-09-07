@@ -60,7 +60,7 @@ def neighbours_cards_points_effect(colour: str):
     return partial(add_points_for_neighbours_cards, colour=colour)
 
 
-def strategist_guild_effect(game, player):
+def strategists_guild_effect(game, player):
     game.points[player] += game.tokens[game.left(player)].count(-1)
     game.points[player] += game.tokens[game.right(player)].count(-1)
 

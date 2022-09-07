@@ -5,15 +5,15 @@ from cards import CARDS
 from game import SevenWonders
 
 # coefficients
-CAN_PLAY_CARD = 0.7
-CAN_BUILD_WONDER = 7.0
-RAW = 0.25
-REFINED = 0.85
-DISC_RAW = 0.45
-DISC_REFINED = 2.0
-COIN_SCORE = 0.3
-WIN_SCORE = [1.7, 3.4, 4.75]
-SCIENCE_BONUS = [2.0, 1.3, 0.0]
+CAN_PLAY_CARD = 0.4
+CAN_BUILD_WONDER = 1.0
+RAW = 1.3
+REFINED = 1.7
+DISC_RAW = 0.8
+DISC_REFINED = 1.0
+COIN_SCORE = 0.4
+WIN_SCORE = [1.7, 3.1, 4.5]
+SCIENCE_BONUS = [1.8, 1.0, 0.0]
 
 
 

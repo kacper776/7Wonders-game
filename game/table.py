@@ -1,5 +1,4 @@
 from copy import copy
-from math import perm
 from random import sample
 from multiprocessing import Process, Pipe
 from multiprocessing.connection import Connection
@@ -68,7 +67,7 @@ class PlayerProcess(object):
 
 
 def play(n_players: int, players: "list[PlayerProcess]",
-         verbose: int, n_games: int) -> "list[int]":
+         verbose: int, n_games: int) -> "dict[str][int]":
     def send_to_all(message_type: str, message=None) -> None:
         for process in players:
             process.send(message_type, message)
@@ -182,7 +181,11 @@ def play(n_players: int, players: "list[PlayerProcess]",
         print(f'\nwins so far: {results}')
         print(f'timeouts: {timeouts}\n')
 
-        new_permutation = next(table_permutation)
+        try:
+            new_permutation = next(table_permutation)
+        except StopIteration:
+            table_permutation = permutations(range(n_players))
+            new_permutation = next(table_permutation)
         players = sorted(players, key=lambda process: process.original_nr)
         for player in range(n_players):
             players[player].nr = new_permutation[player]

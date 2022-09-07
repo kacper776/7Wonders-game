@@ -22,11 +22,6 @@ class MonteCarloPlayer(AbstractPlayer):
     def do_simulation(self, first_move: Move) -> None:
         age = self.game.age
         self.all_simulations[age] += 1
-        # self.simulations[(move.type, move.card)] += 1
-        # self.wins[(move.type, move.card)] += random_game(self.game,
-        #                                                  move, self.nr,
-        #                                                  self.hands_seen,
-        #                                                  self.discard_seen)
         win, moves_done = random_game(self.game,
                                       first_move, self.nr,
                                       self.hands_seen,

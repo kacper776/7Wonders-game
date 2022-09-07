@@ -214,7 +214,7 @@ CARDS = {
         (3,)
     ),
     Card(
-        'craftmens_guild',
+        'craftsmens_guild',
         3,
         'guild',
         Resources(ore=2, stone=2),
@@ -254,12 +254,12 @@ CARDS = {
         (3,)
     ),
     Card(
-        'strategist_guild',
+        'strategists_guild',
         3,
         'guild',
         Resources(ore=2, stone=1, textiles=1),
         no_effect,
-        strategist_guild_effect,
+        strategists_guild_effect,
         (),
         (3,)
     ),

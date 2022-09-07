@@ -187,7 +187,7 @@ class SevenWonders(object):
                                       default=self.FREE_OPTION)))
         if minimal_cost > coins_to_trade:
             return set()
-        return set(filter(lambda payments: sum(payments) == minimal_cost, result))
+        return set(filter(lambda payments: sum(payments) <= minimal_cost, result))
 
     def chains(self, player: int) -> list:
         return [chain for card in self.board[player] for chain in card.chains]
@@ -303,7 +303,7 @@ class SevenWonders(object):
                 print()
                 print(f'{player_names[player]}:')
                 print(f'cards built: {self.board[player]}')
-                print('have resources: ')
+                print('resources options: ')
                 for resource_option in self.resources[player]:
                     print(resource_option)
                 print(f'{self.coins[player]} coins')

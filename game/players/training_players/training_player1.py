@@ -1,11 +1,11 @@
 from random import choice
 
 from base import *
-from heuristics import move_score
+from training.heuristic_for_training1 import move_score
 from players.base_player import AbstractPlayer
 
 
-class ScorePlayer(AbstractPlayer):
+class TrainingPlayer1(AbstractPlayer):
     def prepare(self) -> None:
         pass    
 
