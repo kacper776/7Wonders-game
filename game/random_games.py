@@ -36,10 +36,7 @@ def random_game(game: SevenWonders, first_move: Move, nr: int,
                               if game.hand[player]]   
             while active_players:
                 for player in active_players:
-                    moves = game.moves(player) #######
-                    if not moves: #########
-                        print(player, game.hand[player])
-                    move = semi_random_move(moves)
+                    move = semi_random_move(game.moves(player))
                     if not first_move_done and player == nr:
                         move = first_move
                         first_move_done = True
