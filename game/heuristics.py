@@ -9,12 +9,11 @@ CAN_PLAY_CARD = 0.7
 CAN_BUILD_WONDER = 7.0
 RAW = 0.25
 REFINED = 0.85
-DISC_RAW = 0.45
+DISC_RAW = 0.5
 DISC_REFINED = 2.0
 COIN_SCORE = 0.3
 WIN_SCORE = [1.7, 3.4, 4.75]
 SCIENCE_BONUS = [2.0, 1.3, 0.0]
-
 
 
 def resource_score(game: SevenWonders, nr: int) -> float:
