@@ -255,14 +255,7 @@ class SevenWonders(object):
     def do_move(self, player: int, move: Move, player_name: str='') -> None:
         if self.verbose:
             print(f'{player_name} does {move}')
-            # print(self.moves(player))
-            # print((type, (card, pay_option)))
-            # for p in range(self.n_players):
-            #     print(p, self.hand[p])
-        moves = self.moves(player)
-        if move not in moves:
-            print(move, moves, sep='\n')
-        assert(move in moves)
+        assert(move in self.moves(player))
         if move.type == 'play':
             self.play_card(move.card, player, move.pay_option)
         if move.type == 'sell':

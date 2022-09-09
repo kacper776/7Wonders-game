@@ -322,7 +322,7 @@ WONDERS = {
                 points_effect(5)
             ),
             WonderStage(
-                Resources(clay=5),
+                Resources(clay=3),
                 no_effect,
                 points_effect(5)
             ),
