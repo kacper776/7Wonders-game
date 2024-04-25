@@ -1,7 +1,7 @@
 # 7 Cudów Świata | 7 Wonders
 autor: kacper Solecki
 
-A simple terminal-controlled implementation of & Wonders (https://boardgamegeek.com/boardgame/68448/7-wonders) board game.
+A simple terminal-controlled implementation of 7 Wonders (https://boardgamegeek.com/boardgame/68448/7-wonders) board game.
 
 ## Aby uruchomić grę:
 
